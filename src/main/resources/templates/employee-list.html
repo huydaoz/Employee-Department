@@ -8,14 +8,33 @@
 <body class="bg-light">
 <div class="container mt-5">
     <h2 class="text-center mb-4">DANH SÁCH NHÂN VIÊN</h2>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form th:action="@{/employees}" method="get" class="d-flex">
+                <input type="text" name="search" th:value="${search}" class="form-control me-2" placeholder="Tìm theo tên...">
+                <button class="btn btn-outline-primary" type="submit">Tìm</button>
+            </form>
+        </div>
+        <div class="col-md-6 text-end">
+            <a th:href="@{/employees/add}" class="btn btn-success">+ Thêm nhân viên</a>
+        </div>
+    </div>
     <table class="table table-hover shadow bg-white">
         <thead class="table-primary">
         <tr>
             <th>ID</th>
-            <th>Họ Tên</th>
-            <th>Tuổi</th>
+            <th>Avatar</th>
+            <th>
+                <a th:href="@{'/employees?page=' + ${currentPage} + '&search=' + ${search} + '&sortField=name&sortDir=' + ${reverseSortDir}}" class="text-white text-decoration-none">
+                    Họ Tên [[${sortField == 'name' ? (sortDir == 'asc' ? '↑' : '↓') : ''}]]
+                </a>
+            </th>
+            <th>
+                <a th:href="@{'/employees?page=' + ${currentPage} + '&search=' + ${search} + '&sortField=age&sortDir=' + ${reverseSortDir}}" class="text-white text-decoration-none">
+                    Tuổi [[${sortField == 'age' ? (sortDir == 'asc' ? '↑' : '↓') : ''}]]
+                </a>
+            </th>
             <th>Phòng Ban</th>
-            <th>Địa điểm</th>
             <th>Trạng thái</th>
         </tr>
         </thead>
@@ -32,10 +51,32 @@
             <td th:text="${emp.name}"></td>
             <td th:text="${emp.age}"></td>
             <td th:text="${emp.department.name}"></td>
-            ...
         </tr>
         </tbody>
     </table>
+    <nav th:if="${totalPages > 0}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <!-- Nút Previous -->
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/employees(page=${currentPage - 1}, search=${search}, sortField=${sortField}, sortDir=${sortDir})}">Trước</a>
+            </li>
+
+            <!-- Các số trang -->
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                <a class="page-link" th:href="@{/employees(page=${i}, search=${search}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}"></a>
+            </li>
+
+            <!-- Nút Next -->
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/employees(page=${currentPage + 1}, search=${search}, sortField=${sortField}, sortDir=${sortDir})}">Sau</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Thông báo nếu không có dữ liệu -->
+    <div th:if="${totalItems == 0}" class="alert alert-warning text-center">
+        Không tìm thấy nhân viên nào phù hợp với từ khóa: <strong th:text="${search}"></strong>
+    </div>
 </div>
 </body>
 </html>

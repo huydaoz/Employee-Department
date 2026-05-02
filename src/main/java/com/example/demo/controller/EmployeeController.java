@@ -4,6 +4,10 @@ import com.example.demo.entity.Employee;
 import com.example.demo.repository.DepartmentRepository;
 import com.example.demo.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +27,33 @@ public class EmployeeController {
     private final DepartmentRepository departmentRepository;
 
     @GetMapping
-    public String listEmployees(Model model) {
+    public String listEmployees(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            Model model) {
 
-        model.addAttribute("list", employeeRepository.findAll());
+        // 1. Thiết lập hướng sắp xếp
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+
+        // 2. Tạo đối tượng Pageable
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 3. Thực hiện truy vấn
+        Page<Employee> employeePage = employeeRepository.findByNameContainingIgnoreCase(search, pageable);
+
+        // 4. Đẩy dữ liệu ra View
+        model.addAttribute("list", employeePage.getContent()); // Danh sách nhân viên trang hiện tại
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", employeePage.getTotalPages());
+        model.addAttribute("totalItems", employeePage.getTotalElements());
+        model.addAttribute("search", search);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
         return "employee-list";
     }
     @GetMapping("/add")
